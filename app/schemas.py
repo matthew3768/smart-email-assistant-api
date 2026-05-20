@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from enum import Enum
 
 class EmailReplyTone(str, Enum):
-    freindly = "friendly"
+    friendly = "friendly"
     professional = "professional"
     concise = "concise"
 

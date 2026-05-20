@@ -25,7 +25,7 @@ def test_draft_reply_endpoint():
         json={
             "sender": "Alex",
             "subject": "Project meeting",
-            "body": "Hi are we still okay to meet tommorow?",
+            "body": "Hi are we still okay to meet tomorrow?",
             "tone": "professional",
         },
 

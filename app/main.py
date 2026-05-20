@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailCategory, EmailClassificationRequest, EmailClassificationResponse
+from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailClassificationRequest, EmailClassificationResponse
 from app.services.classification_service import classify_email_message
 from app.services.draft_service import generate_draft_reply
 
