@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from enum import Enum
 
 class EmailReplyTone(str, Enum):
@@ -14,9 +14,9 @@ class EmailCategory(str, Enum):
     general = "general"
 
 class EmailDraftRequest(BaseModel):
-    sender: str
-    subject: str
-    body: str
+    sender: str = Field(..., min_length=1)
+    subject: str = Field(..., min_length=1)
+    body: str = Field(..., min_length=1)
     tone: EmailReplyTone = EmailReplyTone.professional
 
 class EmailDraftResponse(BaseModel):
@@ -25,10 +25,10 @@ class EmailDraftResponse(BaseModel):
     tone: EmailReplyTone
 
 class EmailClassificationRequest(BaseModel):
-    subject: str
-    body: str
+    subject: str = Field(..., min_length=1)
+    body: str = Field(..., min_length=1)
 
 class EmailClassificationResponse(BaseModel):
     category: EmailCategory
-    confidence: float
+    confidence: float = Field(..., ge=0, le=1)
     explanation: str

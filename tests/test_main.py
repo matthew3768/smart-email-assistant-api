@@ -69,4 +69,66 @@ def test_invalid_tone_returns_validation_error():
      
      assert response.status_code == 422
 
-        
+def test_draft_reply_rejects_empty_sender():
+    response = client.post(
+        "/draft-reply",
+        json={
+            "sender": "",
+            "subject": "Project meeting",
+            "body": "Hi, are we still meeting tomorrow",
+            "tone": "professional",
+        },
+    )    
+
+    assert response.status_code == 422   
+
+def test_draft_reply_rejects_empty_subject():
+    response = client.post(
+        "/draft-reply",
+        json={
+            "sender": "Alex",
+            "subject": "",
+            "body": "Hi, are we still meeting tomorrow?",
+            "tone": "professional",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_draft_reply_rejects_empty_body():
+    response = client.post(
+        "/draft-reply",
+        json={
+            "sender": "Alex",
+            "subject": "Project meeting",
+            "body": "",
+            "tone": "professional",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_classify_email_rejects_empty_subject():
+    response = client.post(
+        "/classify-email",
+        json={
+            "subject": "",
+            "body": "Hi, I am unhappy because my account is not working properly.",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_classify_email_rejects_empty_body():
+    response = client.post(
+        "/classify-email",
+        json={
+            "subject": "Issue with my account",
+            "body": "",
+        },
+    )
+
+    assert response.status_code == 422
