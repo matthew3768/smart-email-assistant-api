@@ -31,3 +31,6 @@ A FastAPI-based email assistant API for drafting, classifying, and automating em
 - powershell
 - .\venv\Scripts\Activate.ps1
 
+## run tests
+-powershell
+-pytest

@@ -1,6 +1,6 @@
 from app.schemas import EmailCategory, EmailClassificationRequest, EmailClassificationResponse
 
-def classify_email_meessage(request: EmailClassificationRequest):
+def classify_email_message(request: EmailClassificationRequest) -> EmailClassificationResponse:
     email_text = f"{request.subject} {request.body}".lower()
 
     if any(word in email_text for word in ["complaint", "unhappy","issue","problem", "not working", "disappointed"]):

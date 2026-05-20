@@ -20,6 +20,7 @@ class EmailDraftRequest(BaseModel):
     tone: EmailReplyTone = EmailReplyTone.professional
 
 class EmailDraftResponse(BaseModel):
+    subject: str
     suggested_reply: str
     tone: EmailReplyTone
 

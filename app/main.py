@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailCategory, EmailClassificationRequest, EmailClassificationResponse
-from app.services.classification_service import classify_email_meessage
+from app.services.classification_service import classify_email_message
 from app.services.draft_service import generate_draft_reply
 
 app = FastAPI(
@@ -23,5 +23,5 @@ def draft_reply(request: EmailDraftRequest):
 
 @app.post("/classify-email", response_model=EmailClassificationResponse)
 def classify_email(request:EmailClassificationRequest):
-    return classify_email_meessage(request)
+    return classify_email_message(request)
 
