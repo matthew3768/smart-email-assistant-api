@@ -6,6 +6,13 @@ class EmailReplyTone(str, Enum):
     professional = "professional"
     concise = "concise"
 
+class EmailCategory(str, Enum):
+    question = "question"
+    request = "request"
+    complaint = "complaint"
+    follow_up = "follow_up"
+    general = "general"
+
 class EmailDraftRequest(BaseModel):
     sender: str
     subject: str
@@ -15,3 +22,12 @@ class EmailDraftRequest(BaseModel):
 class EmailDraftResponse(BaseModel):
     suggested_reply: str
     tone: EmailReplyTone
+
+class EmailClassificationRequest(BaseModel):
+    subject: str
+    body: str
+
+class EmailClassificationResponse(BaseModel):
+    category: EmailCategory
+    confidence: float
+    explanation: str
