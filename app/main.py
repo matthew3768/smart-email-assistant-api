@@ -2,11 +2,16 @@ from fastapi import FastAPI
 from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailClassificationRequest, EmailClassificationResponse
 from app.services.classification_service import classify_email_message
 from app.services.draft_service import generate_draft_reply
+from app.database import engine
+from app.models import Base
+
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Smart Email Assistant API",
     description="An API for drafting, classifying, and automating email replies.",
-    version="0.1.0",
+    version="0.8.0",
 )
 
 @app.get("/")
