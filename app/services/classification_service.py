@@ -57,3 +57,10 @@ def save_email_classification(
     db.refresh(classification)
 
     return classification
+
+def get_classification_responses(db: Session) -> list[EmailClassification]:
+    return (
+        db.query(EmailClassification)
+        .order_by(EmailClassification.created_at.desc())
+        .all()
+    )

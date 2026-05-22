@@ -212,3 +212,33 @@ def test_classify_email_saves_to_database():
     assert saved_classification is not None
     assert saved_classification.category == "complaint"
     assert saved_classification.confidence == 0.85
+
+def test_get_classifications_gets_saved_classifications():
+    client.post(
+        "/classify-email",
+        json={
+             "subject": "Document Classification test",
+             "body": "Could you check this appears in the history?",
+        },
+    )
+
+    response = client.get("/classifications")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) > 0
+
+    matching_classification = [
+        classification for classification in data
+        if classification["subject"] == "Document Classification test"
+    ]
+
+    assert len(matching_classification) > 0
+    assert matching_classification[0]["subject"] == "Document Classification test"
+    assert matching_classification[0]["body"] == "Could you check this appears in the history?"
+    assert matching_classification[0]["category"] == "request"
+    assert matching_classification[0]["confidence"] == 0.80
+    assert "action" in matching_classification[0]["explanation"].lower()
+    assert "created_at" in matching_classification[0]

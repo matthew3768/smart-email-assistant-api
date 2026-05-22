@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailClassificationRequest, EmailClassificationResponse, DraftReplyHistoryResponse
-from app.services.classification_service import classify_email_message, save_email_classification
+from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailClassificationRequest, EmailClassificationResponse, DraftReplyHistoryResponse, EmailClassificationHistoryResponse
+from app.services.classification_service import classify_email_message, save_email_classification, get_classification_responses
 from app.services.draft_service import generate_draft_reply, save_draft_reply, get_draft_replies
 from app.database import engine, get_db
 from app.models import Base
@@ -47,3 +47,7 @@ def classify_email(
     save_email_classification(db, request, response)
     
     return response
+
+@app.get("/classifications", response_model=list[EmailClassificationHistoryResponse])
+def list_classification_responses(db: Session = Depends(get_db)):
+    return get_classification_responses(db)

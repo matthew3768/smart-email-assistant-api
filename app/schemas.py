@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
 from datetime import datetime
 
@@ -35,6 +35,9 @@ class EmailClassificationResponse(BaseModel):
     explanation: str
 
 class DraftReplyHistoryResponse(BaseModel):
+
+    model_config=ConfigDict(from_attributes=True)
+
     id: int
     sender: str
     subject: str
@@ -43,5 +46,18 @@ class DraftReplyHistoryResponse(BaseModel):
     suggested_reply: str
     created_at: datetime
 
-    class config:
-        from_attributes = True
+   
+
+class EmailClassificationHistoryResponse(BaseModel):
+
+    model_config=ConfigDict(from_attributes=True)
+
+    id: int
+    subject: str
+    body: str
+    category: str
+    confidence: float
+    explanation: str
+    created_at: datetime
+
+    
