@@ -1,3 +1,6 @@
+from sqlalchemy.orm import Session
+
+from app.models import DraftReply
 from app.schemas import EmailDraftRequest, EmailDraftResponse
 
 def generate_draft_reply(request: EmailDraftRequest) -> EmailDraftResponse:
@@ -31,3 +34,22 @@ def generate_draft_reply(request: EmailDraftRequest) -> EmailDraftResponse:
         suggested_reply=suggested_reply,
         tone=request.tone,
     )   
+
+def save_draft_reply(
+        db: Session,
+        request: EmailDraftRequest,
+        response: EmailDraftResponse,
+) -> DraftReply: 
+    draft = DraftReply(
+        sender=request.sender,
+        subject=request.subject,
+        body=request.body,
+        tone=request.tone.value,
+        suggested_reply=response.suggested_reply,
+    )
+
+    db.add(draft)
+    db.commit()
+    db.refresh(draft)
+
+    return draft

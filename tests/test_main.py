@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.models import DraftReply
+from app.database import SessionLocal
 
 client = TestClient(app)
 
@@ -132,3 +134,29 @@ def test_classify_email_rejects_empty_body():
     )
 
     assert response.status_code == 422
+
+def test_draft_reply_is_saved_to_database():
+    response = client.post(
+        "/draft-reply",
+        json={
+            "sender":"Jamie",
+            "subject": "Database test",
+            "body": "Can you confirm that this is saving?",
+            "tone": "concise",
+        },
+    )
+
+    assert response.status_code == 200
+
+    db = SessionLocal()
+    saved_draft = (
+        db.query(DraftReply)
+        .filter(DraftReply.subject == "Database test")
+        .first()
+    )
+    db.close()
+
+    assert saved_draft is not None
+    assert saved_draft.sender == "Jamie"
+    assert saved_draft.tone == "concise"
+    assert "Thanks for your email" in saved_draft.suggested_reply
