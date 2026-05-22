@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from enum import Enum
+from datetime import datetime
 
 class EmailReplyTone(str, Enum):
     friendly = "friendly"
@@ -32,3 +33,15 @@ class EmailClassificationResponse(BaseModel):
     category: EmailCategory
     confidence: float = Field(..., ge=0, le=1)
     explanation: str
+
+class DraftReplyHistoryResponse(BaseModel):
+    id: int
+    sender: str
+    subject: str
+    body: str
+    tone: str
+    suggested_reply: str
+    created_at: datetime
+
+    class config:
+        from_attributes = True

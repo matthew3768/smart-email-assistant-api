@@ -160,3 +160,32 @@ def test_draft_reply_is_saved_to_database():
     assert saved_draft.sender == "Jamie"
     assert saved_draft.tone == "concise"
     assert "Thanks for your email" in saved_draft.suggested_reply
+
+def test_get_drafts_returns_saved_drafts():
+    client.post(
+        "/draft-reply",
+        json={
+            "sender": "Taylor",
+            "subject": "Draft history test",
+            "body": "can you check this appears in the history",
+            "tone": "friendly",
+        }
+    )
+
+    response = client.get("/drafts")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) > 0
+
+    matching_drafts = [
+        draft for draft in data
+        if draft["subject"] == "Draft history test"
+    ]
+
+    assert len(matching_drafts) > 0
+    assert matching_drafts[0]["sender"] == "Taylor"
+    assert matching_drafts[0]["tone"] == "friendly"
+    assert "suggested_reply" in matching_drafts[0]

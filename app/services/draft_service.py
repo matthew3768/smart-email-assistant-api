@@ -53,3 +53,10 @@ def save_draft_reply(
     db.refresh(draft)
 
     return draft
+
+def get_draft_replies(db: Session) -> list[DraftReply]:
+    return (
+        db.query(DraftReply)
+        .order_by(DraftReply.created_at.desc())
+        .all()
+    )
