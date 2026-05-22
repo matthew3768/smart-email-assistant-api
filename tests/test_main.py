@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.models import DraftReply
+from app.models import DraftReply,  EmailClassification
 from app.database import SessionLocal
 
 client = TestClient(app)
@@ -189,3 +189,26 @@ def test_get_drafts_returns_saved_drafts():
     assert matching_drafts[0]["sender"] == "Taylor"
     assert matching_drafts[0]["tone"] == "friendly"
     assert "suggested_reply" in matching_drafts[0]
+
+def test_classify_email_saves_to_database():
+    response = client.post(
+        "/classify-email",
+        json={
+             "subject": "Issue with my account",
+             "body": "Hi, I am unhappy because my account is not working properly.",
+        },
+    )
+
+    assert response.status_code == 200
+
+    db = SessionLocal()
+    saved_classification = (
+        db.query(EmailClassification)
+        .filter(EmailClassification.subject == "Issue with my account")
+        .first()
+    )
+    db.close()
+
+    assert saved_classification is not None
+    assert saved_classification.category == "complaint"
+    assert saved_classification.confidence == 0.85

@@ -1,4 +1,7 @@
+from sqlalchemy.orm import Session
+
 from app.schemas import EmailCategory, EmailClassificationRequest, EmailClassificationResponse
+from app.models import EmailClassification
 
 def classify_email_message(request: EmailClassificationRequest) -> EmailClassificationResponse:
     email_text = f"{request.subject} {request.body}".lower()
@@ -34,3 +37,23 @@ def classify_email_message(request: EmailClassificationRequest) -> EmailClassifi
         explanation=explanation
       
     )
+
+
+def save_email_classification(
+    db: Session,
+    request: EmailClassificationRequest,
+    response: EmailClassificationResponse,
+) -> EmailClassification:
+    classification = EmailClassification(
+        subject=request.subject,
+        body=request.body,
+        category=response.category.value,
+        confidence=response.confidence,
+        explanation=response.explanation,
+    )
+
+    db.add(classification)
+    db.commit()
+    db.refresh(classification)
+
+    return classification
