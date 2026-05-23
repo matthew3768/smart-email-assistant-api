@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailClassificationRequest, EmailClassificationResponse, DraftReplyHistoryResponse, EmailClassificationHistoryResponse
-from app.services.classification_service import classify_email_message, save_email_classification, get_classification_responses
-from app.services.draft_service import generate_draft_reply, save_draft_reply, get_draft_replies
+from app.services.classification_service import classify_email_message, save_email_classification, get_classification_responses,delete_email_classifications
+from app.services.draft_service import generate_draft_reply, save_draft_reply, get_draft_replies, delete_draft_reply
 from app.database import engine, get_db
 from app.models import Base
 
@@ -37,6 +37,15 @@ def draft_reply(
 def list_draft_replies(db: Session = Depends(get_db)):
     return get_draft_replies(db)
 
+@app.delete("/drafts/{draft_id}")
+def delete_draft(draft_id: int, db:Session = Depends(get_db)):
+    deleted = delete_draft_reply(db, draft_id)
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Draft reply not found")
+    
+    return {"message": "Draft reply successfully deleted."}
+
 
 @app.post("/classify-email", response_model=EmailClassificationResponse)
 def classify_email(
@@ -51,3 +60,12 @@ def classify_email(
 @app.get("/classifications", response_model=list[EmailClassificationHistoryResponse])
 def list_classification_responses(db: Session = Depends(get_db)):
     return get_classification_responses(db)
+
+@app.delete("/classifications/{classification_id}")
+def delete_classification(classification_id: int, db: Session = Depends(get_db)):
+    deleted = delete_email_classifications(db, classification_id)
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Email classification not found")
+    
+    return {"message": "Email classification successfully deleted"}

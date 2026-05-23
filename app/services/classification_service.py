@@ -64,3 +64,14 @@ def get_classification_responses(db: Session) -> list[EmailClassification]:
         .order_by(EmailClassification.created_at.desc())
         .all()
     )
+
+def delete_email_classifications(db: Session, classfication_id: int) -> bool:
+    classification = db.query(EmailClassification).filter(EmailClassification.id == classfication_id).first()
+
+    if classification is None:
+        return False
+    
+    db.delete(classification)
+    db.commit()
+
+    return True

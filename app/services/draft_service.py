@@ -60,3 +60,15 @@ def get_draft_replies(db: Session) -> list[DraftReply]:
         .order_by(DraftReply.created_at.desc())
         .all()
     )
+
+def delete_draft_reply(db:Session, draft_id: int) -> bool:
+    draft = db.query(DraftReply).filter(DraftReply.id == draft_id).first()
+
+    if draft is None:
+        return False
+    
+    db.delete(draft)
+    db.commit()
+
+    return True
+

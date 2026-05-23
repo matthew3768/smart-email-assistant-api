@@ -242,3 +242,101 @@ def test_get_classifications_gets_saved_classifications():
     assert matching_classification[0]["confidence"] == 0.80
     assert "action" in matching_classification[0]["explanation"].lower()
     assert "created_at" in matching_classification[0]
+
+
+def test_delete_existing_draft():
+    create_response = client.post(
+        "/draft-reply",
+        json={
+            "sender": "Morgan",
+            "subject": "Delete draft test",
+            "body": "Please create this draft so it can be deleted.",
+            "tone": "professional",
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    db = SessionLocal()
+    saved_draft = (
+        db.query(DraftReply)
+        .filter(DraftReply.subject == "Delete draft test")
+        .first()
+    )
+
+    db.close()
+
+    assert saved_draft is not None
+
+    delete_response = client.delete(f"/drafts/{saved_draft.id}")
+
+    assert delete_response.status_code == 200
+    assert delete_response.json() == {
+        "message": "Draft reply successfully deleted."
+    }
+  
+    db = SessionLocal()
+    deleted_draft = (
+        db.query(DraftReply)
+        .filter(DraftReply.id == saved_draft.id)
+        .first()
+    )
+    
+    db.close()
+
+    assert deleted_draft is None
+
+def test_delete_missing_draft():
+    response = client.delete("/drafts/9999999")
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Draft reply not found"
+    }
+
+def test_delete_existing_classification():
+    create_response = client.post(
+        "/classify-email",
+        json={
+            "subject": "Delete Classification test",
+            "body": "Classification deletion test"
+        },  
+    )
+        
+    assert create_response.status_code == 200
+
+    db = SessionLocal()
+    saved_classification = (
+        db.query(EmailClassification)
+        .filter(EmailClassification.body == "Classification deletion test")
+        .first()
+    )
+
+    db.close()
+
+    assert saved_classification is not None
+
+    delete_response = client.delete(f"/classifications/{saved_classification.id}")
+
+    assert delete_response.status_code == 200
+    assert delete_response.json() == {
+        "message": "Email classification successfully deleted"
+    }
+
+    db = SessionLocal()
+    deleted_classification = (
+        db.query(EmailClassification)
+        .filter(EmailClassification.id == saved_classification.id)
+        .first()
+    )
+    db.close()
+
+    assert deleted_classification is  None
+
+def test_delete_missing_classification():
+    response = client.delete("/classifications/99999999999")
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Email classification not found"
+    }
