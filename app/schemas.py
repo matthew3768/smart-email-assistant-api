@@ -22,6 +22,7 @@ class EmailDraftRequest(BaseModel):
 
 class EmailDraftResponse(BaseModel):
     subject: str
+    category: EmailCategory
     suggested_reply: str
     tone: EmailReplyTone
 

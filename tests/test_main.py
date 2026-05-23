@@ -38,6 +38,7 @@ def test_draft_reply_endpoint():
     data = response.json()
     assert data["subject"] == "Project meeting"
     assert data["tone"] == "professional"
+    assert data["category"] == "question"
     assert "suggested_reply" in data
     assert "Hi Alex" in data["suggested_reply"]
 
@@ -340,3 +341,21 @@ def test_delete_missing_classification():
     assert response.json() == {
         "detail": "Email classification not found"
     }
+
+def test_draft_reply_uses_complaint_category():
+    response = client.post(
+        "/draft-reply",
+        json={
+            "sender": "Alex",
+            "subject": "Issue with account",
+            "body": "I am unhappy because my account is not working.",
+            "tone": "professional",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["category"] == "complaint"
+    assert "sorry" in data["suggested_reply"].lower()
+    assert data["tone"] == "professional"
