@@ -9,7 +9,7 @@ def classify_email_message(request: EmailClassificationRequest) -> EmailClassifi
     if any(word in email_text for word in ["complaint", "unhappy","issue","problem", "not working", "disappointed"]):
         category = EmailCategory.complaint
         confidence = 0.85
-        explanation = "This email contains language hitting to a complaint or a problem."
+        explanation = "This email contains language hinting at a complaint or a problem."
 
     elif any(word in email_text for word in ["please", "could you", "can you", "would you"]):
          category = EmailCategory.request
@@ -24,12 +24,12 @@ def classify_email_message(request: EmailClassificationRequest) -> EmailClassifi
     elif any(word in email_text for word in ["following up", "follow up", "checking in", "any update", "update on"]):
         category = EmailCategory.follow_up
         confidence =  0.85
-        explanation = "This email appears to be hitting to be a follow up message"
+        explanation = "This email appears to be a follow-up message."
 
     else:
         category = EmailCategory.general
         confidence = 0.60
-        explanation = "This email dosen't seem to fit within any default category" 
+        explanation = "This email doesn't seem to fit within any default category." 
 
     return EmailClassificationResponse(
         category=category,
@@ -65,8 +65,8 @@ def get_classification_responses(db: Session) -> list[EmailClassification]:
         .all()
     )
 
-def delete_email_classifications(db: Session, classfication_id: int) -> bool:
-    classification = db.query(EmailClassification).filter(EmailClassification.id == classfication_id).first()
+def delete_email_classifications(db: Session, classification_id: int) -> bool:
+    classification = db.query(EmailClassification).filter(EmailClassification.id == classification_id).first()
 
     if classification is None:
         return False
