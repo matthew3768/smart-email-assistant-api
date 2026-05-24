@@ -435,3 +435,82 @@ def test_detect_priority_rejects_empty_body():
     )
 
     assert response.status_code == 422
+
+def test_get_drafts_can_filter_by_sender():
+    client.post(
+        "/draft-reply",
+        json={
+            "sender": "FilterSenderTest",
+            "subject": "Sender filter test",
+            "body": "Can you check this sender filter?",
+            "tone": "friendly",
+        },
+    )
+
+    response = client.get("/drafts?sender=FilterSenderTest")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) > 0
+    assert all("FilterSenderTest" in draft["sender"] for draft in data)
+
+
+def test_get_drafts_can_filter_by_tone():
+    client.post(
+        "/draft-reply",
+        json={
+            "sender": "Tone Filter User",
+            "subject": "Tone filter test",
+            "body": "Can you check this tone filter?",
+            "tone": "concise",
+        },
+    )
+
+    response = client.get("/drafts?tone=concise")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) > 0
+    assert all(draft["tone"] == "concise" for draft in data)
+
+
+def test_get_classifications_can_filter_by_category():
+    client.post(
+        "/classify-email",
+        json={
+            "subject": "Filter complaint test",
+            "body": "I am unhappy because there is a problem with my account.",
+        },
+    )
+
+    response = client.get("/classifications?category=complaint")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) > 0
+    assert all(classification["category"] == "complaint" for classification in data)
+
+
+def test_get_classifications_can_filter_by_min_confidence():
+    client.post(
+        "/classify-email",
+        json={
+            "subject": "Filter confidence test",
+            "body": "I am unhappy because there is a problem with my account.",
+        },
+    )
+
+    response = client.get("/classifications?min_confidence=0.8")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) > 0
+    assert all(classification["confidence"] >= 0.8 for classification in data)

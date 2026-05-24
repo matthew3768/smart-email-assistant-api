@@ -35,8 +35,13 @@ def draft_reply(
     return response
 
 @app.get("/drafts", response_model=list[DraftReplyHistoryResponse])
-def list_draft_replies(db: Session = Depends(get_db)):
-    return get_draft_replies(db)
+def list_draft_replies(
+    sender: str | None = None,
+    tone: str | None = None,
+    db: Session = Depends(get_db),
+): 
+    return get_draft_replies(db, sender = sender, tone = tone)
+    
 
 @app.delete("/drafts/{draft_id}")
 def delete_draft(draft_id: int, db:Session = Depends(get_db)):
@@ -59,8 +64,14 @@ def classify_email(
     return response
 
 @app.get("/classifications", response_model=list[EmailClassificationHistoryResponse])
-def list_classification_responses(db: Session = Depends(get_db)):
-    return get_classification_responses(db)
+def list_classification_responses(
+    category: str | None = None,
+    min_confidence: str | None = None,
+    db: Session = Depends(get_db)
+):
+    return get_classification_responses(db, category = category, min_confidence = min_confidence)
+    
+    
 
 @app.delete("/classifications/{classification_id}")
 def delete_classification(classification_id: int, db: Session = Depends(get_db)):

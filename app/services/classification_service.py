@@ -58,12 +58,16 @@ def save_email_classification(
 
     return classification
 
-def get_classification_responses(db: Session) -> list[EmailClassification]:
-    return (
-        db.query(EmailClassification)
-        .order_by(EmailClassification.created_at.desc())
-        .all()
-    )
+def get_classification_responses(db: Session, category: str | None = None, min_confidence: float | None = None) -> list[EmailClassification]:
+    query = db.query(EmailClassification)
+
+    if category:
+        query = query.filter(EmailClassification.category == category)
+
+    if min_confidence:
+        query = query.filter(EmailClassification.confidence >= min_confidence)
+   
+    return query.order_by(EmailClassification.created_at.desc()).all()
 
 def delete_email_classifications(db: Session, classification_id: int) -> bool:
     classification = db.query(EmailClassification).filter(EmailClassification.id == classification_id).first()

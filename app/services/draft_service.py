@@ -144,12 +144,19 @@ def save_draft_reply(
 
     return draft
 
-def get_draft_replies(db: Session) -> list[DraftReply]:
-    return (
-        db.query(DraftReply)
-        .order_by(DraftReply.created_at.desc())
-        .all()
-    )
+def get_draft_replies(db: Session, sender: str | None = None, tone: str | None = None) -> list[DraftReply]:
+   
+   query = db.query(DraftReply)
+
+   if sender:
+       query = query.filter(DraftReply.sender.ilike(f"%{sender}%"))
+   
+   if tone:
+       query = query.filter(DraftReply.tone == tone)
+
+   return query.order_by(DraftReply.created_at.desc()).all()
+
+
 
 def delete_draft_reply(db:Session, draft_id: int) -> bool:
     draft = db.query(DraftReply).filter(DraftReply.id == draft_id).first()
