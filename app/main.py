@@ -1,8 +1,9 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailClassificationRequest, EmailClassificationResponse, DraftReplyHistoryResponse, EmailClassificationHistoryResponse
+from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailClassificationRequest, EmailClassificationResponse, DraftReplyHistoryResponse, EmailClassificationHistoryResponse,EmailPriorityRequest, EmailPriorityResponse
 from app.services.classification_service import classify_email_message, save_email_classification, get_classification_responses,delete_email_classifications
 from app.services.draft_service import generate_draft_reply, save_draft_reply, get_draft_replies, delete_draft_reply
+from app.services.priority_service import detect_email_priority
 from app.database import engine, get_db
 from app.models import Base
 
@@ -69,3 +70,7 @@ def delete_classification(classification_id: int, db: Session = Depends(get_db))
         raise HTTPException(status_code=404, detail="Email classification not found")
     
     return {"message": "Email classification successfully deleted"}
+
+@app.post("/detect-priority", response_model=EmailPriorityResponse)
+def detect_priority(request: EmailPriorityRequest):
+    return detect_email_priority(request)

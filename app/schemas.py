@@ -62,3 +62,17 @@ class EmailClassificationHistoryResponse(BaseModel):
     created_at: datetime
 
     
+class EmailPriority(str, Enum):
+    low = "low"
+    normal = "normal"
+    high = "high"
+    urgent = "urgent"
+
+class EmailPriorityRequest(BaseModel):
+    subject: str = Field(..., min_length=1)
+    body: str = Field(..., min_length=1)
+
+class EmailPriorityResponse(BaseModel):
+    priority: EmailPriority
+    confidence: float = Field(..., ge=0, le=1)
+    explanation: str

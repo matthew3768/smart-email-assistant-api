@@ -359,3 +359,79 @@ def test_draft_reply_uses_complaint_category():
     assert data["category"] == "complaint"
     assert "sorry" in data["suggested_reply"].lower()
     assert data["tone"] == "professional"
+
+def test_priority_urgent():
+    response = client.post(
+        "/detect-priority",
+        json={
+            "subject": "Urgent account issue",
+            "body": "Please fix this immediately, this is critical.",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["priority"] == "urgent"
+    assert data["confidence"] == 0.90
+    assert "urgent" in data["explanation"].lower()
+
+def test_priority_high():
+    response = client.post(
+        "/detect-priority",
+        json={
+            "subject": "Deadline today",
+            "body": "This is important and needs to be completed by end of day.",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["priority"] == "high"
+    assert data["confidence"] == 0.80
+    assert "high" in data["explanation"].lower()
+
+def test_detect_priority_low():
+    response = client.post(
+        "/detect-priority",
+        json={
+            "subject": "Small update",
+            "body": "No rush, please check this whenever you have time.",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["priority"] == "low"
+    assert data["confidence"] == 0.75
+
+
+def test_detect_priority_normal():
+    response = client.post(
+        "/detect-priority",
+        json={
+            "subject": "Weekly notes",
+            "body": "Here are the notes from this week.",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["priority"] == "normal"
+    assert data["confidence"] == 0.60
+
+
+def test_detect_priority_rejects_empty_body():
+    response = client.post(
+        "/detect-priority",
+        json={
+            "subject": "Urgent account issue",
+            "body": "",
+        },
+    )
+
+    assert response.status_code == 422
