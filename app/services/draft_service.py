@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.models import DraftReply
-from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailCategory, EmailClassificationRequest
+from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailCategory, EmailClassificationRequest, DraftReplyUpdateRequest
 from app.services.classification_service import classify_email_message
 
 def generate_draft_reply(request: EmailDraftRequest) -> EmailDraftResponse:
@@ -169,3 +169,32 @@ def delete_draft_reply(db:Session, draft_id: int) -> bool:
 
     return True
 
+def update_draft_reply(
+        db: Session,
+        draft_id: int,
+        update_data: DraftReplyUpdateRequest,
+) -> DraftReply |  None:
+    draft = db.query(DraftReply).filter(DraftReply.id == draft_id).first()
+
+    if draft is None:
+        return None
+    
+    if update_data.sender is not None:
+        draft.sender = update_data.sender
+
+    if update_data.subject is not None:
+        draft.subject = update_data.subject
+
+    if update_data.body is not None:
+        draft.body = update_data.body
+
+    if update_data.tone is not None:
+        draft.tone = update_data.tone.value
+
+    if update_data.suggested_reply is not None:
+        draft.suggested_reply = update_data.suggested_reply
+
+    db.commit()
+    db.refresh(draft)
+
+    return draft

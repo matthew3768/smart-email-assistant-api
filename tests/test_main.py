@@ -514,3 +514,85 @@ def test_get_classifications_can_filter_by_min_confidence():
     assert isinstance(data, list)
     assert len(data) > 0
     assert all(classification["confidence"] >= 0.8 for classification in data)
+
+
+def test_update_existing_draft():
+    client.post(
+        "/draft-reply",
+        json={
+            "sender": "Update Test User",
+            "subject": "Update draft test",
+            "body": "Please create this draft so it can be updated.",
+            "tone": "professional",
+        },
+    )
+
+    db = SessionLocal()
+    saved_draft = (
+        db.query(DraftReply)
+        .filter(DraftReply.subject == "Update draft test")
+        .first()
+    )
+    db.close()
+
+    assert saved_draft is not None
+
+    response = client.put(
+        f"/drafts/{saved_draft.id}",
+        json={
+            "suggested_reply": "This is the updated draft reply.",
+            "tone": "friendly",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["id"] == saved_draft.id
+    assert data["suggested_reply"] == "This is the updated draft reply."
+    assert data["tone"] == "friendly"
+
+
+def test_update_missing_draft_returns_404():
+    response = client.put(
+        "/drafts/999999",
+        json={
+            "suggested_reply": "This should not update anything."
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Draft reply not found"
+    }
+
+
+def test_update_draft_rejects_empty_suggested_reply():
+    client.post(
+        "/draft-reply",
+        json={
+            "sender": "Validation Update User",
+            "subject": "Update validation test",
+            "body": "Please create this draft.",
+            "tone": "professional",
+        },
+    )
+
+    db = SessionLocal()
+    saved_draft = (
+        db.query(DraftReply)
+        .filter(DraftReply.subject == "Update validation test")
+        .first()
+    )
+    db.close()
+
+    assert saved_draft is not None
+
+    response = client.put(
+        f"/drafts/{saved_draft.id}",
+        json={
+            "suggested_reply": ""
+        },
+    )
+
+    assert response.status_code == 422

@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailClassificationRequest, EmailClassificationResponse, DraftReplyHistoryResponse, EmailClassificationHistoryResponse,EmailPriorityRequest, EmailPriorityResponse
+from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailClassificationRequest, EmailClassificationResponse, DraftReplyHistoryResponse, EmailClassificationHistoryResponse,EmailPriorityRequest, EmailPriorityResponse, DraftReplyUpdateRequest
 from app.services.classification_service import classify_email_message, save_email_classification, get_classification_responses,delete_email_classifications
-from app.services.draft_service import generate_draft_reply, save_draft_reply, get_draft_replies, delete_draft_reply
+from app.services.draft_service import generate_draft_reply, save_draft_reply, get_draft_replies, delete_draft_reply, update_draft_reply
 from app.services.priority_service import detect_email_priority
 from app.database import engine, get_db
 from app.models import Base
@@ -52,6 +52,19 @@ def delete_draft(draft_id: int, db:Session = Depends(get_db)):
     
     return {"message": "Draft reply successfully deleted."}
 
+
+@app.put("/drafts/{draft_id}", response_model=DraftReplyHistoryResponse)
+def update_draft(
+    draft_id: int,
+    update_data: DraftReplyUpdateRequest,
+    db: Session = Depends(get_db),
+):
+    updated_draft = update_draft_reply(db, draft_id, update_data)
+
+    if updated_draft is None:
+        raise HTTPException(status_code=404, detail="Draft reply not found")
+    
+    return updated_draft
 
 @app.post("/classify-email", response_model=EmailClassificationResponse)
 def classify_email(

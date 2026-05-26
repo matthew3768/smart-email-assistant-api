@@ -47,7 +47,13 @@ class DraftReplyHistoryResponse(BaseModel):
     suggested_reply: str
     created_at: datetime
 
-   
+
+class DraftReplyUpdateRequest(BaseModel):
+    sender: str | None = Field(default=None, min_length=1)
+    subject: str | None = Field(default=None, min_length=1)
+    body: str | None = Field(default=None, min_length=1)
+    tone: EmailReplyTone | None = None
+    suggested_reply: str | None = Field(default=None, min_length=1)
 
 class EmailClassificationHistoryResponse(BaseModel):
 
