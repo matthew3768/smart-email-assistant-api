@@ -596,3 +596,131 @@ def test_update_draft_rejects_empty_suggested_reply():
     )
 
     assert response.status_code == 422
+
+def test_draft_reply_rejects_missing_sneder():
+    response = client.post(
+        "/draft-reply",
+        json={
+            "subject": "missing sender test",
+            "body": "This should fail because sender is missing",
+            "tone": "professional",
+        }
+    )
+
+    assert response.status_code == 422
+
+def test_draft_reply_rejects_missing_subject():
+    response = client.post(
+        "/draft-reply",
+        json={
+            "sender": "Alex",
+            "body": "This should fail because subject is missing",
+            "tone": "professional",
+        }
+    )
+
+    assert response.status_code == 422
+
+def test_draft_reply_rejects_missing_body():
+    response = client.post(
+        "/draft-reply",
+        json={
+            "sender": "Alex",
+            "subject": "missing body test",
+            "tone": "professional",
+        }
+    )
+
+    assert response.status_code == 422
+
+def test_update_draft_reply_rejects_invalid_tone():
+    client.post(
+        "/draft-reply",
+        json={
+            "sender": "Invalid Tone Update User",
+            "subject": "Invalid update tone test",
+            "body": "Please create this draft.",
+            "tone": "professional",
+        },
+    )
+
+    db = SessionLocal()
+    saved_draft = (
+        db.query(DraftReply)
+        .filter(DraftReply.subject == "Invalid update tone test")
+        .first()
+    )
+    db.close()
+
+    assert saved_draft is not None
+
+    response = client.put(
+        f"/drafts/{saved_draft.id}",
+        json={
+            "tone": "angry",
+        },
+    )
+
+    assert response.status_code == 422
+
+def test_classify_email_rejects_missing_subject():
+    response = client.post(
+        "/classify-email",
+        json={
+            "body": "should fail because subject is missing",
+        }
+    )
+
+    assert response.status_code == 422
+
+def test_classify_email_rejects_missing_body():
+    response = client.post(
+        "/classify-email",
+        json={
+            "subject": "missing body classification test",
+        }
+    )
+
+    assert response.status_code == 422
+
+def test_email_priority_rejects_missing_subject():
+    response = client.post(
+        "/detect-priority",
+        json={
+            "body": "should fail because subject is missiing",
+        }
+    )
+
+    assert response.status_code ==  422
+
+def test_email_priority_rejects_missing_body():
+    response = client.post(
+        "/detect-priority",
+        json={
+            "subject": "missing body email priority test"
+        }
+    )
+
+    assert response.status_code == 422
+
+def test_delete_draft_rejects_invalid_id_type():
+    response = client.delete("/drafts/not-a-number")
+
+    assert response.status_code == 422
+
+
+def test_delete_classification_rejects_invalid_id_type():
+    response = client.delete("/classifications/not-a-number")
+
+    assert response.status_code == 422
+
+
+def test_update_draft_rejects_invalid_id_type():
+    response = client.put(
+        "/drafts/not-a-number",
+        json={
+            "suggested_reply": "This should fail."
+        },
+    )
+
+    assert response.status_code == 422
