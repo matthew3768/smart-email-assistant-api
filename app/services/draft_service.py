@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.models import DraftReply
 from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailCategory, EmailClassificationRequest, DraftReplyUpdateRequest
 from app.services.classification_service import classify_email_message
+from app.services.ai_service import generate_ai_draft_reply, is_ai_available
 
 def generate_draft_reply(request: EmailDraftRequest) -> EmailDraftResponse:
     classification_request = EmailClassificationRequest(
@@ -11,6 +12,17 @@ def generate_draft_reply(request: EmailDraftRequest) -> EmailDraftResponse:
     )
     classification_response = classify_email_message(classification_request)
     category = classification_response.category
+
+    if is_ai_available():
+        ai_reply = generate_ai_draft_reply(request)
+
+        if ai_reply:
+            return EmailDraftResponse(
+                subject=request.subject,
+                category=category,
+                suggested_reply=ai_reply,
+                tone=request.tone
+            )
 
     if category == EmailCategory.complaint:
         if request.tone == "concise":

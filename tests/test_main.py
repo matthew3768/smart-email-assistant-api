@@ -724,3 +724,21 @@ def test_update_draft_rejects_invalid_id_type():
     )
 
     assert response.status_code == 422
+
+def test_draft_reply_uses_fallback_when_ai_is_disabled():
+    response = client.post(
+        "/draft-reply",
+        json={
+            "sender": "Alex",
+            "subject": "AI fallback test",
+            "body": "Hi, when are we meeting tomorrow?",
+            "tone": "professional",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["category"] == "question"
+    assert "ai-generated" not in data["suggested_reply"].lower()
+    assert "thank you for your question" in data["suggested_reply"].lower()
