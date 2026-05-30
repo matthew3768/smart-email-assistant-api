@@ -7,9 +7,10 @@ A FastAPI-based API for drafting, classifying, storing, and managing email repli
 - Health check endpoint
 - Suggested email replies
 - Email classification
+- Email priority detection
 - SQLite database persistence
-- Draft reply history and deletion
-- Email classification history and deletion
+- Draft reply history, filtering, updates, and deletion
+- Email classification history, filtering, and deletion
 - Request validation for required fields and allowed reply tones
 
 ## Tech Stack
@@ -32,6 +33,7 @@ app/
   services/
     classification_service.py
     draft_service.py
+    priority_service.py
 tests/
   test_main.py
 ```
@@ -42,12 +44,25 @@ tests/
 GET     /                         Health message
 GET     /health                   Health status
 POST    /draft-reply              Generate and save a draft reply
-GET     /drafts                   List saved draft replies
+GET     /drafts                   List saved draft replies, optionally filtered by sender or tone
+PUT     /drafts/{draft_id}        Update a saved draft reply
 DELETE  /drafts/{draft_id}        Delete a saved draft reply
 POST    /classify-email           Classify and save an email
-GET     /classifications          List saved email classifications
+GET     /classifications          List saved classifications, optionally filtered by category or minimum confidence
 DELETE  /classifications/{id}     Delete a saved email classification
+POST    /detect-priority          Detect email priority without saving it
 ```
+
+## Query Filters
+
+```text
+GET /drafts?sender=Alex
+GET /drafts?tone=concise
+GET /classifications?category=complaint
+GET /classifications?min_confidence=0.8
+```
+
+Allowed draft tones are `friendly`, `professional`, and `concise`.
 
 ## Run Locally
 
