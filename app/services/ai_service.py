@@ -1,23 +1,106 @@
-from app.config import OPENAI_API_KEY, USE_AI
+import logging
+
+from google import genai
+from openai import OpenAI
+
+from app.config import (
+    AI_PROVIDER,
+    GEMINI_API_KEY,
+    GROK_API_KEY,
+    GROK_BASE_URL,
+    GROK_MODEL,
+    GROQ_API_KEY,
+    GROQ_BASE_URL,
+    GROQ_MODEL,
+    USE_AI,
+)
 from app.schemas import EmailDraftRequest
 
 
+logger = logging.getLogger(__name__)
+
+
 def is_ai_available() -> bool:
-    return USE_AI and bool(OPENAI_API_KEY)
+    if not USE_AI:
+        return False
+
+    if AI_PROVIDER == "gemini":
+        return bool(GEMINI_API_KEY)
+
+    if AI_PROVIDER == "groq":
+        return bool(GROQ_API_KEY)
+
+    if AI_PROVIDER == "grok":
+        return bool(GROK_API_KEY)
+
+    return False
 
 
 def generate_ai_draft_reply(request: EmailDraftRequest) -> str:
-    """
-    Placeholder for AI-generated email replies.
-
-    This will later call an AI model when USE_AI=true and an API key is available.
-    For now, it returns a safe placeholder response.
-    """
     if not is_ai_available():
         return ""
 
-    return (
-        f"Hi {request.sender},\n\n"
-        f"This is where an AI-generated reply about '{request.subject}' would be created.\n\n"
-        f"Best regards"
-    )
+    prompt = f"""
+You are an email assistant.
+
+Write a helpful email reply using the requested tone.
+
+Sender: {request.sender}
+Subject: {request.subject}
+Original email:
+{request.body}
+
+Tone: {request.tone.value}
+
+Rules:
+- Keep the reply concise.
+- Do not invent facts.
+- Do not promise actions that are not stated.
+- Do not include a subject line.
+- Start with a greeting.
+- End with a suitable sign-off.
+"""
+
+    try:
+        if AI_PROVIDER == "gemini":
+            client = genai.Client(api_key=GEMINI_API_KEY)
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt,
+            )
+
+            return response.text.strip()
+
+        if AI_PROVIDER == "grok":
+            client = OpenAI(
+                api_key=GROK_API_KEY,
+                base_url=GROK_BASE_URL,
+            )
+            response = client.chat.completions.create(
+                model=GROK_MODEL,
+                messages=[
+                    {"role": "user", "content": prompt},
+                ],
+            )
+
+            return response.choices[0].message.content.strip()
+
+        if AI_PROVIDER == "groq":
+            client = OpenAI(
+                api_key=GROQ_API_KEY,
+                base_url=GROQ_BASE_URL,
+            )
+            response = client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[
+                    {"role": "user", "content": prompt},
+                ],
+            )
+
+            return response.choices[0].message.content.strip()
+
+    except Exception as exc:
+        logger.warning("%s draft generation failed; using fallback reply: %s", AI_PROVIDER, exc)
+        return ""
+
+    return ""
