@@ -35,6 +35,15 @@ class EmailClassificationResponse(BaseModel):
     confidence: float = Field(..., ge=0, le=1)
     explanation: str
 
+class EmailSummaryRequest(BaseModel):
+    subject: str = Field(..., min_length=1)
+    body: str = Field(..., min_length=1)
+
+class EmailSummaryResponse(BaseModel):
+    subject: str
+    summary: str
+    used_ai: bool
+
 class DraftReplyHistoryResponse(BaseModel):
 
     model_config=ConfigDict(from_attributes=True)

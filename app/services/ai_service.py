@@ -2,6 +2,7 @@ import logging
 
 from google import genai
 from openai import OpenAI
+from app.schemas import EmailDraftRequest, EmailSummaryRequest
 
 from app.config import (
     AI_PROVIDER,
@@ -14,7 +15,7 @@ from app.config import (
     GROQ_MODEL,
     USE_AI,
 )
-from app.schemas import EmailDraftRequest
+
 
 
 logger = logging.getLogger(__name__)
@@ -104,3 +105,52 @@ Rules:
         return ""
 
     return ""
+
+def generate_ai_email_summary(request: EmailSummaryRequest) -> str:
+    if not is_ai_available():
+        return ""
+
+    prompt = f"""
+You are an email assistant.
+
+Summarise the email clearly and concisely.
+
+Subject: {request.subject}
+
+Email body:
+{request.body}
+
+Rules:
+- Use 1 to 2 sentences.
+- Focus on the main point of the email.
+- Do not invent details.
+- Do not include a greeting or sign-off.
+"""
+
+    try:
+        client = OpenAI(
+            api_key=GROQ_API_KEY,
+            base_url=GROQ_BASE_URL,
+        )
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You summarise emails clearly and accurately.",
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ],
+            temperature=0.2,
+            max_tokens=120,
+        )
+
+        return response.choices[0].message.content.strip()
+
+    except Exception:
+        return ""
+
+    

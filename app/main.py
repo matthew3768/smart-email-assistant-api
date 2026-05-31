@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailClassificationRequest, EmailClassificationResponse, DraftReplyHistoryResponse, EmailClassificationHistoryResponse,EmailPriorityRequest, EmailPriorityResponse, DraftReplyUpdateRequest
+from app.schemas import EmailDraftRequest, EmailDraftResponse, EmailClassificationRequest, EmailClassificationResponse, DraftReplyHistoryResponse, EmailClassificationHistoryResponse,EmailPriorityRequest, EmailPriorityResponse, DraftReplyUpdateRequest, EmailSummaryRequest,EmailSummaryResponse
 from app.services.classification_service import classify_email_message, save_email_classification, get_classification_responses,delete_email_classifications
 from app.services.draft_service import generate_draft_reply, save_draft_reply, get_draft_replies, delete_draft_reply, update_draft_reply
 from app.services.priority_service import detect_email_priority
+from app.services.summary_service import summarise_email
 from app.database import engine, get_db
 from app.models import Base
 
@@ -65,6 +66,10 @@ def update_draft(
         raise HTTPException(status_code=404, detail="Draft reply not found")
     
     return updated_draft
+
+@app.post("/summarise-email", response_model=EmailSummaryResponse)
+def summarize_email_endpoint(request: EmailSummaryRequest):
+    return summarise_email(request)
 
 @app.post("/classify-email", response_model=EmailClassificationResponse)
 def classify_email(

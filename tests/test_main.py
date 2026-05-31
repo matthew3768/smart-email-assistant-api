@@ -742,3 +742,43 @@ def test_draft_reply_uses_fallback_when_ai_is_disabled():
     assert data["category"] == "question"
     assert "ai-generated" not in data["suggested_reply"].lower()
     assert "thank you for your question" in data["suggested_reply"].lower()
+
+def test_summarise_email_uses_fallback_when_ai_is_disabled():
+    response = client.post(
+        "/summarise-email",
+        json={
+            "subject": "Project meeting update",
+            "body": "Tomorrow's project meeting has been moved from 10am to 2pm.",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["subject"] == "Project meeting update"
+    assert data["used_ai"] is False
+    assert "Project meeting update" in data["summary"]
+
+
+def test_summarise_email_rejects_empty_subject():
+    response = client.post(
+        "/summarise-email",
+        json={
+            "subject": "",
+            "body": "This should fail because the subject is empty.",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_summarise_email_rejects_empty_body():
+    response = client.post(
+        "/summarise-email",
+        json={
+            "subject": "Missing body summary test",
+            "body": "",
+        },
+    )
+
+    assert response.status_code == 422
