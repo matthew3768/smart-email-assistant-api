@@ -1,6 +1,6 @@
 # Smart Email Assistant API
 
-A FastAPI-based API for drafting, classifying, storing, and managing email replies.
+A FastAPI-based API for drafting, classifying, prioritising, storing, and managing email replies.
 
 ## Features
 
@@ -11,6 +11,7 @@ A FastAPI-based API for drafting, classifying, storing, and managing email repli
 - SQLite database persistence
 - Draft reply history, filtering, updates, and deletion
 - Email classification history, filtering, and deletion
+- Optional AI-generated draft replies with deterministic fallback replies
 - Request validation for required fields and allowed reply tones
 
 ## Tech Stack
@@ -21,22 +22,28 @@ A FastAPI-based API for drafting, classifying, storing, and managing email repli
 - SQLAlchemy
 - Uvicorn
 - Pytest
+- python-dotenv
+- OpenAI-compatible clients, Groq, and Google GenAI for optional AI draft generation
 
 ## Project Structure
 
 ```text
 app/
+  config.py
   database.py
   main.py
   models.py
   schemas.py
   services/
+    ai_service.py
     classification_service.py
     draft_service.py
     priority_service.py
 tests/
   test_main.py
 ```
+
+Runtime data is stored in `email_assistant.db`, which is created automatically when the app starts.
 
 ## API Endpoints
 
@@ -64,6 +71,35 @@ GET /classifications?min_confidence=0.8
 
 Allowed draft tones are `friendly`, `professional`, and `concise`.
 
+## Optional AI Drafts
+
+Draft replies work without external AI services by using local fallback logic. To enable AI-generated replies, create a `.env` file and set `USE_AI=true` with a supported provider.
+
+```text
+USE_AI=true
+AI_PROVIDER=groq
+GROQ_API_KEY=your_api_key_here
+```
+
+Supported `AI_PROVIDER` values are `groq`, `grok`, `xai`, `x.ai`, and `gemini`.
+
+Provider-specific options:
+
+```text
+AI_API_KEY=shared_fallback_key
+GROQ_API_KEY=your_groq_key
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+GROQ_MODEL=llama-3.3-70b-versatile
+
+GROK_API_KEY=your_xai_key
+GROK_BASE_URL=https://api.x.ai/v1
+GROK_MODEL=grok-4
+
+GEMINI_API_KEY=your_gemini_key
+```
+
+If AI is disabled, missing a key, or the provider call fails, the API falls back to the built-in reply generator.
+
 ## Run Locally
 
 ```powershell
@@ -77,6 +113,12 @@ The API will be available at:
 
 ```text
 http://127.0.0.1:8000
+```
+
+Interactive API docs are available at:
+
+```text
+http://127.0.0.1:8000/docs
 ```
 
 ## Run Tests
