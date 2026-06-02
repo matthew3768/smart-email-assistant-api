@@ -4,6 +4,7 @@ from app.main import app
 from app.models import DraftReply,  EmailClassification
 from app.database import SessionLocal
 
+
 client = TestClient(app)
 
 def test_root_endpoint():
@@ -663,6 +664,38 @@ def test_update_draft_reply_rejects_invalid_tone():
 
     assert response.status_code == 422
 
+def test_draft_reply_can_use_mocked_ai(monkeypatch):
+    from app.services import draft_service
+
+    monkeypatch.setattr(
+        draft_service,
+        "is_ai_available",
+        lambda: True,
+    )
+
+    monkeypatch.setattr(
+        draft_service,
+        "generate_ai_draft_reply",
+        lambda request: "Hi Alex,\n\nThis is a mocked AI reply.\n\nBest",
+    )
+
+    response = client.post(
+        "/draft-reply",
+        json={
+            "sender": "Alex",
+            "subject": "Mock AI draft test",
+            "body": "Can you test the AI draft path?",
+            "tone": "friendly",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["suggested_reply"] == "Hi Alex,\n\nThis is a mocked AI reply.\n\nBest"
+    assert data["tone"] == "friendly"
+    assert data["category"] == "request"
+
 def test_classify_email_rejects_missing_subject():
     response = client.post(
         "/classify-email",
@@ -782,3 +815,51 @@ def test_summarise_email_rejects_empty_body():
     )
 
     assert response.status_code == 422
+
+def test_summarise_email_can_use_mocked_ai(monkeypatch):
+    from app.services import summary_service
+
+    monkeypatch.setattr(
+        summary_service,
+        "generate_ai_email_summary",
+        lambda request: "This is a mocked AI summary.",
+    )
+
+    response = client.post(
+        "/summarise-email",
+        json={
+            "subject": "Mock summary test",
+            "body": "This email should be summarized using a mocked AI response.",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["subject"] == "Mock summary test"
+    assert data["summary"] == "This is a mocked AI summary."
+    assert data["used_ai"] is True
+
+def test_summarise_email_uses_fallback_when_ai_returns_empty(monkeypatch):
+    from app.services import summary_service
+
+    monkeypatch.setattr(
+        summary_service,
+        "generate_ai_email_summary",
+        lambda request: "",
+    )
+
+    response = client.post(
+        "/summarise-email",
+        json={
+            "subject": "Empty AI summary test",
+            "body": "This should use the fallback summary.",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["subject"] == "Empty AI summary test"
+    assert data["used_ai"] is False
+    assert "Empty AI summary test" in data["summary"]
